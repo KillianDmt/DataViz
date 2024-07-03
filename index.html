@@ -614,6 +614,11 @@
 
           <h1 id="firstHeading" class="firstHeading">Archive:Crime statistics </h1>
 
+          <div>
+            <canvas width="100%" height="auto" id="fetchId">
+            </canvas>
+          </div>
+
           <div id="bodyContent" class="bodyContent">
 
             <!-- start content -->
@@ -799,10 +804,19 @@
                 <span class="mw-headline" id="Crimes_et_d.C3.A9lits_enregistr.C3.A9s_par_les_services_de_police">Crimes recorded by the police</span>
               </h3>
 
+<!--Mettre dans le js-->
 
-              <input type="range" id="slider" min="2002" max="2012" step="1" value="2012">
+              <div>
+                <canvas width="100%" height="auto" id="myChart"></canvas>
+              </div>
+
+              <!--<input type="range" id="slider" min="2002" max="2012" step="1" value="2012">
               <span id="dateLabel">2002</span>
-              <div id="chart"></div>
+              <div id="chart"></div>-->
+
+              <label for="countrySlider">Select Country: </label>
+              <input type="range" id="countrySlider" min="0" max="0" step="1">
+              <span id="selectedCountry"></span>
               
               <table cellspacing="0" cellpadding="0" id="table1">
                 <caption> Table 1: Offences recorded by the police, 2002-12</caption>
@@ -2066,9 +2080,8 @@
 
     <!--END PAGE-->
   </div>
-  <script src="https://d3js.org/d3.v6.min.js"></script>
-  <script src="https://d3js.org/topojson.v1.min.js"></script>
-  <script src="./script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="./scriptChartJS.js"></script>
 </body>
 
 </html>

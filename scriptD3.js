@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import * as topojson from "topojson";
+import * as topojson from "topojson-client";
 
 function tableToJSON() {
     const table = document.getElementById('table1');
@@ -15,12 +15,12 @@ function tableToJSON() {
     // Iterate over the rows
     for (let i = 2; i < table.rows.length; i++) {
         const row = table.rows[i];
-        const country = row.cells[1].innerText;
+        const country = row.cells[1].innerText.trim();
         const data = {};
 
         for (let j = 2; j < row.cells.length; j++) {
             const year = headers[j - 2];
-            const value = row.cells[j].innerText.replace(',', '.');
+            const value = row.cells[j].innerText.replace(',', '.').trim();
             if (value !== ':') { // Exclude missing data
                 data[year] = parseFloat(value);
             }
@@ -34,25 +34,36 @@ function tableToJSON() {
 
 // Run the function and log the output
 const result = tableToJSON();
-console.log(JSON.stringify(result, null, 2));
+console.log(result);
 
+// Create the Map to hold country shapes
+const countryMap = new Map();
 
-const MapEurope = new Map();
-
-
-// europe.topojson dans ./assets
+// Fetch the GeoJSON data
+fetch('./assets/europe.topojson')
+    .then(response => response.json())
+    .then(topoData => {
+        const geoData = topojson.feature(topoData, topoData.objects.countries).features;
+        geoData.forEach(feature => {
+            const countryName = feature.properties.NAME;
+            countryMap.set(countryName, feature);
+        });
+        console.log(countryMap);
+    })
+    .catch(error => console.error('Error loading GeoJSON:', error));
 
 function UpdateChart(year) {
-    const ChartForYear = result.filter(d => d.date === year.toString());
-
-     // Continue with the rest of the D3.js code to create the chart
-     const data = result.map((d) => ({
-        ...d,
-        countryShape: MapEurope.get(d.country),
+    const dataForYear = Object.keys(result).map(country => ({
+        country: country,
+        crimes: result[country][year] || 0,
+        countryShape: countryMap.get(country)
     })).filter(d => d.countryShape)
       .sort((a, b) => d3.descending(a.crimes, b.crimes));
 
-    const radius = d3.scaleSqrt([0, d3.max(data, d => d.crimes)], [0, 40]);
+    const radius = d3.scaleSqrt()
+        .domain([0, d3.max(dataForYear, d => d.crimes)])
+        .range([0, 40]);
+
     const path = d3.geoPath();
 
     d3.select("#chart").html(""); // Clear the existing chart
@@ -64,7 +75,7 @@ function UpdateChart(year) {
         .attr("style", "width: 100%; height: auto; height: intrinsic;");
 
     svg.append("path")
-        .datum(topojson.feature(world, world.objects.countries)) // Assuming 'world' contains world map data
+        .datum(topojson.feature(topoData, topoData.objects.countries))
         .attr("fill", "#ddd")
         .attr("d", path);
 
@@ -74,9 +85,9 @@ function UpdateChart(year) {
         .attr("stroke", "#fff")
         .attr("stroke-width", 0.5)
         .selectAll("circle")
-        .data(data)
+        .data(dataForYear)
         .join("circle")
-        .attr("transform", d => `translate(${centroid(d.countryShape)})`)
+        .attr("transform", d => `translate(${d3.geoCentroid(d.countryShape)})`)
         .attr("r", d => radius(d.crimes))
       .append("title")
         .text(d => `${d.country}\n${d.crimes} crimes`);
@@ -105,10 +116,8 @@ function UpdateChart(year) {
 document.getElementById("slider").addEventListener("input", function() {
     const year = this.value;
     document.getElementById("dateLabel").innerText = year;
-    updateChart(year);
+    UpdateChart(year);
 });
 
 // Initial chart rendering
-updateChart(2020);
-
-
+UpdateChart(2020);
