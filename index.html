@@ -1487,6 +1487,17 @@
                 <span class="mw-headline" id="Homicides">Homicide</span>
               </h4>
 
+              <div>
+                <canvas width="100%" height="auto" id="myChart2"></canvas>
+              </div>
+
+              <label for="yearSlider">Select Year: </label>
+
+              <input type="range" id="yearSlider" min="1" max="2" step="1">
+
+              <span id="selectedYear"></span>
+
+
               <table cellspacing="0" cellpadding="0" id="table2">
                 <caption>Prison population, average per year, 2007-09 and 2010-12
                   <br> (per 100,000 inhabitants)</caption>
@@ -2082,6 +2093,8 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="./scriptChartJS.js"></script>
+  <script src="./scriptChartJS2.js"></script>
+
 </body>
 
 </html>

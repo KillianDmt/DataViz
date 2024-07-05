@@ -1,15 +1,22 @@
 
-function table1ToJSON() {
+function dataFrom1() {
     const table = document.getElementById('table1');
-   // const tableBis = document.getElementById('table2');
+    const tableBis = document.getElementById('table2');
     const headers = [];
     const json = {};
 
     const headerCells = table.rows[1].cells;
-    for (let i = 2; i < headerCells.length; i++) {
+    for (let i = 1; i < headerCells.length; i++) {
         headers.push(headerCells[i].innerText);
     }
+    
+    const headerCellsBis = tableBis.rows[0].cells
+    for (let i = 2; i < headerCellsBis.lenght; i++) {
+        headers.push(headerCellsBis[i+1]).innerText
+    }
 
+    console.log(headers);
+    console.log(tableBis);
 
     for (let i = 2; i < table.rows.length; i++) {
         const row = table.rows[i];
@@ -24,13 +31,26 @@ function table1ToJSON() {
             }
         }
 
-       /* for (let iBis = 2; iBis < table.length; iBis++){
-            console.log(tableBis[iBis]);
-            
-            while (tableBis[iBis][1] === country) {
+       for (let iBis = 2; iBis < tableBis.rows.length; iBis++){
+            const rowBis = tableBis.rows[iBis];
+            const countryBis = row.cells[1].innerText.trim();
+            const dataBis = {};
+
+            for (let jBis = 2; jBis < rowBis.cells.lenght; jBis++) {
+
+                while (tableBis[iBis][jBis] === country) {
                 
+                    const yearBis = headers[j + 10];
+                    const value = rowBis.cells[jBis].innerText.replace(',', '.').trim();
+                    if (value !== ':') { // Exclude missing data
+                        data[yearBis] = parseFloat(value);
+                    }
+
+                
+                }
             }
-        }*/
+           
+        }
 
         json[country] = data;
     }
@@ -40,7 +60,7 @@ function table1ToJSON() {
 
 }
 
-const result = table1ToJSON();
+const result = dataFrom1();
 console.log(result);
 
 
@@ -98,12 +118,11 @@ function updateChart(country) {
 updateChart(countries[0]);
 
 
-function table2ToJSON() {  // extract all in 1 and separate charts ? 
+/*function dataFrom2() {  // extract all in 1 and separate charts ? 
     const table = document.getElementById('table2');
     const headers = [];
-    const json = table1ToJSON();
-    console.log (json);
-    // Get headers (years)
+    const data = [];
+
     const headerCells = table.rows[0].cells;
     for (let i = 1; i < headerCells.length; i++) {
         headers.push(headerCells[i].innerText);
@@ -113,6 +132,7 @@ function table2ToJSON() {  // extract all in 1 and separate charts ?
     for (let i = 1; i < 29; i++) {
         const row = table.rows[i];
         const country = row.cells[i].innerText.trim();
+        const dataCountry = {country};
 
         console.log(country);
         /*for (let j = 2; j < row.cells.length; j++) {
@@ -121,42 +141,64 @@ function table2ToJSON() {  // extract all in 1 and separate charts ?
             if (value !== ':') { // Exclude missing data
                 data[year] = parseFloat(value);
             }
-        }*/
-       console.log(json);
-
-        if (json.country ) {
-            const data1 = {};
-
-            for (let j = 2; j < 4; j ++) {
-                const year = headers[j];
-                const value1 = row.cells[j].innerText.replace(',', '.').trim();
-
-                console.log(year);
-                console.log(value1);
-
-                if (value1 !== ':') { // Exclude missing data
-                    data1.year = parseFloat(value1);
-                }
-
-                json[country] = data1;
-            }
-
-            
         }
+
+        data.push(dataCountry);
     }
 
 
-    return json;
+    return data;
 
 }
 
-const result2 = table2ToJSON();
+const result2 = dataFrom2();
 console.log(result2);
 
-
+*/
 // come back to it later 
 
 
+const years = Object.keys(dataFrom2[0]).filter(key => key !== 'country');
+const yearSlider = document.getElementById('yearSlider');
+const selectedYearSpan = document.getElementById('selectedYear');
+const barChartCtx = document.getElementById('barChart');
+yearSlider.max = years.length - 1;
+
+let barChart;
+
+yearSlider.addEventListener('input', function() {
+    const selectedIndex = this.value;
+    const selectedYear = years[selectedIndex];
+    selectedYearSpan.innerText = selectedYear;
+    updateBarChart(selectedYear);
+});
+
+function updateBarChart(year) {
+    const dataForYear = dataFrom2.map(d => ({ country: d.country, value: d[year] })).filter(d => d.value !== undefined);
+    const labels = dataForYear.map(d => d.country);
+    const data = dataForYear.map(d => d.value);
+
+    const config = {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `Data for ${year}`,
+                data: data,
+                borderWidth: 1
+            }]
+        }
+    };
+
+    if (barChart) {
+        barChart.destroy(); // Destroy the previous chart
+    }
+
+    barChart = new Chart(barChartCtx, config);
+}
+
+// Initialize the bar chart with the first year
+updateBarChart(years[0]);
 
 
 
