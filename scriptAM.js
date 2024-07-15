@@ -273,3 +273,53 @@ document.addEventListener("DOMContentLoaded", function () {
   let myChart2 = new Chart(Graph2Ctx, config);
 });
 
+const GraphAJaxContainer = document.createElement("div");
+
+const GraphAjaxCanvas = document.createElement("canvas");
+GraphAjaxCanvas.id = "homicidePoliceChart";
+GraphAjaxCanvas.style.width = "100%";
+GraphAjaxCanvas.style.maxWidth = "80rem";
+
+GraphAJaxContainer.appendChild(GraphAjaxCanvas);
+
+const GraphAjaxElement = document.getElementById("bodyContent");
+if (GraphAjaxElement) {
+  const titleElement = document.getElementById("firstHeading");
+  titleElement.insertAdjacentElement("afterend", GraphAJaxContainer);
+} else {
+  console.error("Element with id 'bodyContent' not found.");
+}
+
+const GraphAjaxCtx = GraphAjaxCanvas.getContext("2d");
+
+var dataPoints = [];
+$.getJSON("https://canvasjs.com/services/data/datapoints.php", function(data) {  
+    $.each(data, function(key, value){
+        dataPoints.push({x: value[0], y: parseInt(value[1])});
+    });
+    chart = new Chart("chartContainer",{
+        title:{
+            text:"Live Chart with dataPoints from External JSON"
+        },
+        data: [{
+        type: "line",
+        dataPoints : dataPoints,
+        }]
+    });
+    chart.render();
+    updateChart();
+});
+
+function updateChart() {
+  $.getJSON("https://canvasjs.com/services/data/datapoints.php?xstart=" + (dataPoints.length + 1) + "&ystart=" + (dataPoints[dataPoints.length - 1].y) + "&length=1&type=json", function(data) {
+      $.each(data, function(key, value) {
+          dataPoints.push({
+              x: parseInt(value[0]),
+              y: parseInt(value[1])
+          });
+     });
+     chart.render();
+     setTimeout(function(){updateChart()}, 1000);
+  });
+}
+
